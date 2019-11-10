@@ -3,7 +3,8 @@ const fs = require('fs')
 
 function requestHandler(req, resp){
 
-    if (req.method == 'POST') wait(req).then(body => ta = body)
+    if (req.method == 'POST' && req.url == '/ta') wait(req).then(body => ta = body)
+    if (req.method == 'GET' && req.url == '/ta') resp.end(ta)
     try {
         if (req.url == '/') {
             var html = fs.readFileSync('public/index.html')
