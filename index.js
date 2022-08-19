@@ -1,14 +1,22 @@
-require('http').createServer(requestHandler).listen(process.env.PORT || 8080)
+const { createServer } = require('http')
 const { readFileSync } = require('fs')
 const indexHtml = readFileSync('public/index.html').toString()
 
-let ta = ''
+global.ta = ''
+
+createServer(requestHandler).listen(
+  process.env.PORT || 8080,
+  () => console.log('Server started at http://localhost:8080')
+)
 
 function requestHandler(req, resp) {
   let { url, method } = req
 
   if (url == '/ta') {
-    if (method == 'POST') wait(req).then(body => ta = body)
+    if (method == 'POST') wait(req).then(body => {
+      ta = body 
+      resp.end('ok')
+    })
     else if (method == 'GET') resp.end(ta)
   }
   else if (url == '/' || url == '/index.html') {
