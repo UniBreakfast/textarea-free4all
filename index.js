@@ -1,28 +1,34 @@
-require('http').createServer(requestHandler).listen(process.env.PORT||8080)
-const fs = require('fs')
+require('http').createServer(requestHandler).listen(process.env.PORT || 8080)
+const { readFileSync } = require('fs')
+const indexHtml = readFileSync('public/index.html').toString()
 
-function requestHandler(req, resp){
+let ta = ''
 
-    if (req.method == 'POST' && req.url == '/ta') wait(req).then(body => ta = body)
-    if (req.method == 'GET' && req.url == '/ta') resp.end(ta)
+function requestHandler(req, resp) {
+  let { url, method } = req
+
+  if (url == '/ta') {
+    if (method == 'POST') wait(req).then(body => ta = body)
+    else if (method == 'GET') resp.end(ta)
+  }
+  else if (url == '/' || url == '/index.html') {
+    resp.end(indexHtml.replace('Some text', ta))
+  }
+  else {
     try {
-        if (req.url == '/') {
-            var html = fs.readFileSync('public/index.html')
-            resp.end(html.toString().replace('Some text', ta))
-            
-        } 
-        else resp.end(fs.readFileSync('public' + req.url))
+      resp.end(readFileSync('public' + url))
     } catch {
-        resp.end('Mistake')
+      resp.statusCode = 404
+      resp.end('404, file not found')
     }
-    console.log(req.url)
-    
+  }
 }
 
-const wait = (stream, parts=[])=> new Promise((resolve, reject)=>
-  stream.on('error', reject).on('data', part => parts.push(part))
-    .on('end', ()=> resolve(Buffer.concat(parts).toString('utf8'))))
-
-var ta = ''
-
-
+function wait(stream, parts = []) {
+  return new Promise((resolve, reject) =>
+    stream
+      .on('error', reject)
+      .on('data', part => parts.push(part))
+      .on('end', () => resolve(Buffer.concat(parts).toString('utf8')))
+  )
+}
